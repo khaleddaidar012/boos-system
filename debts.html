@@ -295,6 +295,7 @@
     Theme.init();
     I18n.init();
     Snapshot.initAutoSnapshot();
+    AutoBackup.checkAndRun();
     PageTransitions.init();
 
     const session = Auth.getSession();
@@ -314,6 +315,10 @@
     langBtn.addEventListener('click', () => {
       I18n.toggle();
       langBtn.textContent = I18n.getLanguage() === 'en' ? 'عربي' : 'EN';
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      Auth.logout();
     });
 
     Debts.init();

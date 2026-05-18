@@ -397,16 +397,6 @@
       font-size: 0.85rem;
     }
 
-    .login-footer a {
-      color: var(--accent-primary);
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .login-footer a:hover {
-      text-decoration: underline;
-    }
-
     .mobile-brand {
       display: none;
       background: linear-gradient(135deg, var(--accent-primary) 0%, #7c3aed 50%, #2563eb 100%);
@@ -435,43 +425,17 @@
     }
 
     @media (max-width: 1024px) {
-      .login-brand {
-        display: none;
-      }
-
-      .mobile-brand {
-        display: block;
-      }
-
-      .login-form-side {
-        padding: 1.5rem;
-      }
+      .login-brand { display: none; }
+      .mobile-brand { display: block; }
+      .login-form-side { padding: 1.5rem; }
     }
 
     @media (max-width: 480px) {
-      .login-controls {
-        top: 1rem;
-        right: 1rem;
-      }
-
-      [dir="rtl"] .login-controls {
-        right: auto;
-        left: 1rem;
-      }
-
-      .login-card {
-        max-width: 100%;
-      }
-
-      .login-header h2 {
-        font-size: 1.5rem;
-      }
-
-      .form-options {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
-      }
+      .login-controls { top: 1rem; right: 1rem; }
+      [dir="rtl"] .login-controls { right: auto; left: 1rem; }
+      .login-card { max-width: 100%; }
+      .login-header h2 { font-size: 1.5rem; }
+      .form-options { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
     }
   </style>
 </head>
@@ -528,7 +492,7 @@
             <label class="form-label" data-i18n="username"></label>
             <div class="input-wrapper">
               <span class="input-icon">👤</span>
-              <input type="text" id="loginUsername" class="form-input with-icon" data-i18n="username" required autocomplete="username" autofocus>
+              <input type="text" id="loginUsername" class="form-input with-icon" data-i18n="username" required autocomplete="username">
             </div>
           </div>
 
@@ -571,6 +535,10 @@
     Theme.init();
     I18n.init();
 
+    if (Auth.isLoggedIn()) {
+      window.location.href = 'dashboard.html';
+    }
+
     const themeBtn = document.getElementById('themeToggle');
     themeBtn.textContent = Theme.getTheme() === 'dark' ? '☀️' : '🌙';
     themeBtn.addEventListener('click', () => {
@@ -585,53 +553,55 @@
       langBtn.textContent = I18n.getLanguage() === 'en' ? 'عربي' : 'EN';
     });
 
-    const passwordToggle = document.getElementById('passwordToggle');
-    const passwordInput = document.getElementById('loginPassword');
-    passwordToggle.addEventListener('click', () => {
-      const isPassword = passwordInput.type === 'password';
-      passwordInput.type = isPassword ? 'text' : 'password';
-      passwordToggle.textContent = isPassword ? '🙈' : '👁️';
-    });
+    function showError(msg) {
+      const el = document.getElementById('loginError');
+      document.getElementById('loginErrorText').textContent = I18n.t(msg);
+      el.classList.add('show');
+    }
+    function hideError() { document.getElementById('loginError').classList.remove('show'); }
 
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const username = document.getElementById('loginUsername').value.trim();
-      const password = document.getElementById('loginPassword').value;
-      const errorEl = document.getElementById('loginError');
-      const errorText = document.getElementById('loginErrorText');
-      const loginBtn = document.getElementById('loginBtn');
-
-      errorEl.classList.remove('show');
-      loginBtn.classList.add('loading');
-
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      const result = Auth.login(username, password);
-
-      loginBtn.classList.remove('loading');
-
-      if (result.success) {
-        const remember = document.getElementById('rememberMe').checked;
-        if (remember) {
-          localStorage.setItem('library_remember', username);
-        } else {
-          localStorage.removeItem('library_remember');
-        }
-        window.location.href = 'dashboard.html';
-      } else {
-        errorText.textContent = I18n.t(result.error);
-        errorEl.classList.add('show');
-        passwordInput.value = '';
-        passwordInput.focus();
-      }
+    document.getElementById('passwordToggle').addEventListener('click', () => {
+      const inp = document.getElementById('loginPassword');
+      const isP = inp.type === 'password';
+      inp.type = isP ? 'text' : 'password';
+      document.getElementById('passwordToggle').textContent = isP ? '🙈' : '👁️';
     });
 
     const remembered = localStorage.getItem('library_remember');
     if (remembered) {
       document.getElementById('loginUsername').value = remembered;
       document.getElementById('rememberMe').checked = true;
-      document.getElementById('loginPassword').focus();
     }
+
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      hideError();
+
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const loginBtn = document.getElementById('loginBtn');
+
+      loginBtn.classList.add('loading');
+
+      setTimeout(() => {
+        const result = Auth.login(username, password);
+        loginBtn.classList.remove('loading');
+
+        if (result.success) {
+          const remember = document.getElementById('rememberMe').checked;
+          if (remember) {
+            localStorage.setItem('library_remember', username);
+          } else {
+            localStorage.removeItem('library_remember');
+          }
+          window.location.href = 'dashboard.html';
+        } else {
+          showError(result.error);
+          document.getElementById('loginPassword').value = '';
+          document.getElementById('loginPassword').focus();
+        }
+      }, 600);
+    });
   </script>
 </body>
 </html>

@@ -1,8 +1,12 @@
 const Trash = {
   trash: [],
 
-  init() {
+  _loadTrash() {
     this.trash = Storage.get('trash') || [];
+  },
+
+  init() {
+    this._loadTrash();
     this.render();
   },
 
@@ -42,6 +46,7 @@ const Trash = {
   restore(id) {
     if (!Helpers.confirm(I18n.t('confirmRestore'))) return;
 
+    this._loadTrash();
     const idx = this.trash.findIndex(t => t.id === id);
     if (idx === -1) return;
 
@@ -62,6 +67,7 @@ const Trash = {
   permanentDelete(id) {
     if (!Helpers.confirm(I18n.t('confirmPermanentDelete'))) return;
 
+    this._loadTrash();
     const idx = this.trash.findIndex(t => t.id === id);
     if (idx === -1) return;
 

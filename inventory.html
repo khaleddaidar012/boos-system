@@ -40,6 +40,10 @@
           <span class="nav-icon">👥</span>
           <span class="nav-label" data-i18n="employees"></span>
         </a>
+        <a href="debts.html" class="nav-item admin-only">
+          <span class="nav-icon">💳</span>
+          <span class="nav-label" data-i18n="debts"></span>
+        </a>
         <a href="trash.html" class="nav-item">
           <span class="nav-icon">🗑️</span>
           <span class="nav-label" data-i18n="trash"></span>
@@ -271,6 +275,7 @@
 
   <script src="js/core/storage.js"></script>
   <script src="js/utils/helpers.js"></script>
+  <script src="js/utils/backup.js"></script>
   <script src="js/utils/snapshot.js"></script>
   <script src="js/utils/page-transitions.js"></script>
   <script src="js/core/i18n.js"></script>
@@ -285,6 +290,7 @@
     Theme.init();
     I18n.init();
     Snapshot.initAutoSnapshot();
+    AutoBackup.checkAndRun();
     PageTransitions.init();
 
     const session = Auth.getSession();
@@ -294,6 +300,8 @@
 
     if (Auth.isWorker()) {
       document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+      const exportBtn = document.getElementById('exportBtn');
+      if (exportBtn) exportBtn.style.display = 'none';
     }
 
     const themeBtn = document.getElementById('themeToggle');
@@ -308,6 +316,10 @@
     langBtn.addEventListener('click', () => {
       I18n.toggle();
       langBtn.textContent = I18n.getLanguage() === 'en' ? 'عربي' : 'EN';
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      Auth.logout();
     });
 
     Inventory.init();

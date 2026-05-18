@@ -1,21 +1,11 @@
 const Theme = {
-  _storageKey: 'library_settings',
-
   init() {
-    const settings = this._read();
-    const theme = settings?.theme || 'light';
-    this.apply(theme);
-  },
-
-  _read() {
     try {
-      const raw = localStorage.getItem(this._storageKey);
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  },
-
-  _write(settings) {
-    try { localStorage.setItem(this._storageKey, JSON.stringify(settings)); } catch {}
+      const raw = localStorage.getItem('library_settings');
+      const settings = raw ? JSON.parse(raw) : null;
+      const theme = settings?.theme || 'light';
+      this.apply(theme);
+    } catch {}
   },
 
   apply(theme) {
@@ -30,9 +20,12 @@ const Theme = {
     const isDark = document.documentElement.classList.contains('dark');
     const newTheme = isDark ? 'light' : 'dark';
     this.apply(newTheme);
-    const settings = this._read() || { theme: 'light', language: 'en' };
-    settings.theme = newTheme;
-    this._write(settings);
+    try {
+      const raw = localStorage.getItem('library_settings');
+      const settings = raw ? JSON.parse(raw) : { theme: 'light', language: 'en' };
+      settings.theme = newTheme;
+      localStorage.setItem('library_settings', JSON.stringify(settings));
+    } catch {}
   },
 
   getTheme() {

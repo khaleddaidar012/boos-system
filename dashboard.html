@@ -122,6 +122,7 @@
 
   <script src="js/core/storage.js"></script>
   <script src="js/utils/helpers.js"></script>
+  <script src="js/utils/backup.js"></script>
   <script src="js/utils/snapshot.js"></script>
   <script src="js/utils/page-transitions.js"></script>
   <script src="js/core/i18n.js"></script>
@@ -131,9 +132,11 @@
   <script>
     if (!Auth.requireAuth()) throw new Error('Not authenticated');
 
+    Storage.initDb();
     Theme.init();
     I18n.init();
     Snapshot.initAutoSnapshot();
+    AutoBackup.checkAndRun();
     PageTransitions.init();
 
     const session = Auth.getSession();
@@ -157,6 +160,10 @@
     langBtn.addEventListener('click', () => {
       I18n.toggle();
       langBtn.textContent = I18n.getLanguage() === 'en' ? 'عربي' : 'EN';
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      Auth.logout();
     });
   </script>
 </body>

@@ -4,8 +4,16 @@ const Inventory = {
   activeFilter: 'all',
   advancedOpen: false,
 
-  init() {
+  _loadProducts() {
     this.products = Storage.get('products') || [];
+  },
+
+  _saveProducts() {
+    Storage.set('products', this.products);
+  },
+
+  init() {
+    this._loadProducts();
     this.migrateOldData();
     this.renderFilterTabs();
     this.render();
@@ -43,7 +51,7 @@ const Inventory = {
         createdAt: book.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }));
-      Storage.set('products', this.products);
+      this._saveProducts();
     }
   },
 
@@ -68,7 +76,7 @@ const Inventory = {
     const emptyState = document.getElementById('emptyState');
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
 
-    let filtered = this.products;
+    let filtered = this.products.slice();
 
     if (this.activeFilter !== 'all') {
       filtered = filtered.filter(p => p.type === this.activeFilter);
@@ -160,7 +168,10 @@ const Inventory = {
   },
 
   bindEvents() {
-    document.getElementById('searchInput').addEventListener('input', Helpers.debounce(() => this.render(), 300));
+    document.getElementById('searchInput').addEventListener('input', Helpers.debounce(() => {
+      this._loadProducts();
+      this.render();
+    }, 300));
 
     document.getElementById('addProductBtn').addEventListener('click', () => this.openModal());
 
@@ -230,7 +241,6 @@ const Inventory = {
     this.advancedOpen = !this.advancedOpen;
     const section = document.getElementById('advancedSection');
     const btn = document.getElementById('advancedToggleBtn');
-    const arrow = document.getElementById('advancedToggleArrow');
     const btnText = btn.querySelector('[data-i18n="showAdvanced"], [data-i18n="hideAdvanced"]');
 
     if (this.advancedOpen) {
@@ -254,7 +264,7 @@ const Inventory = {
     const price = parseFloat(document.getElementById('productPrice').value) || 0;
     const cost = parseFloat(document.getElementById('productCost').value) || 0;
     const profitField = document.getElementById('productProfit');
-    
+
     if (price > 0 && cost > 0) {
       const profit = price - cost;
       const profitPercent = ((profit / cost) * 100).toFixed(1);
@@ -358,6 +368,9 @@ const Inventory = {
       }
     });
 
+    // Reload fresh products from storage before saving
+    this._loadProducts();
+
     const product = {
       id: this.editingId || Helpers.genId('prod'),
       name: document.getElementById('productName').value.trim(),
@@ -376,13 +389,16 @@ const Inventory = {
       if (idx !== -1) {
         product.createdAt = this.products[idx].createdAt;
         this.products[idx] = product;
+      } else {
+        this.products.push(product);
       }
     } else {
       product.createdAt = new Date().toISOString();
       this.products.push(product);
     }
 
-    Storage.set('products', this.products);
+    this._saveProducts();
+    this._loadProducts();
     this.render();
     this.renderStats();
     this.closeModal();
@@ -390,11 +406,13 @@ const Inventory = {
   },
 
   edit(id) {
+    this._loadProducts();
     const product = this.products.find(p => p.id === id);
     if (product) this.openModal(product);
   },
 
   delete(id) {
+    this._loadProducts();
     if (!Helpers.confirm(I18n.t('confirmDelete'))) return;
 
     const idx = this.products.findIndex(p => p.id === id);
@@ -409,13 +427,15 @@ const Inventory = {
     Storage.set('trash', trash);
 
     this.products.splice(idx, 1);
-    Storage.set('products', this.products);
+    this._saveProducts();
+    this._loadProducts();
     this.render();
     this.renderStats();
     Helpers.showToast(I18n.t('successDeleted'), 'success');
   },
 
   info(id) {
+    this._loadProducts();
     const product = this.products.find(p => p.id === id);
     if (!product) return;
 
@@ -438,6 +458,7 @@ const Inventory = {
   },
 
   addToCart(id) {
+    this._loadProducts();
     const product = this.products.find(p => p.id === id);
     if (!product || product.quantity === 0) return;
 
@@ -451,6 +472,17 @@ const Inventory = {
       Helpers.showToast(I18n.t('outOfStock'), 'danger');
       return;
     }
+
+    // Reduce stock immediately
+    product.quantity -= quantity;
+    this._saveProducts();
+
+    // Auto-delete if stock hits zero
+    const wasDeleted = this._autoDeleteOutOfStock(product);
+
+    this._loadProducts();
+    this.render();
+    this.renderStats();
 
     const cart = Storage.get('cart') || [];
     const existing = cart.find(c => c.productId === id);
@@ -469,24 +501,36 @@ const Inventory = {
     }
 
     Storage.set('cart', cart);
-    Helpers.showToast(`${product.name} added to cart`, 'success');
+
+    if (wasDeleted) {
+      Helpers.showToast(`${product.name} sold out and removed from inventory`, 'warning');
+    } else {
+      Helpers.showToast(`${product.name} added to cart`, 'success');
+    }
+  },
+
+  _autoDeleteOutOfStock(product) {
+    if (product.quantity !== 0) return false;
+
+    this._loadProducts();
+    const idx = this.products.findIndex(p => p.id === product.id);
+    if (idx === -1) return false;
+
+    const trash = Storage.get('trash') || [];
+    const item = this.products[idx];
+    item.deletedAt = new Date().toISOString();
+    item.deletedBy = Auth.getSession()?.username || 'unknown';
+    item.autoDeleted = true;
+    trash.push(item);
+    Storage.set('trash', trash);
+
+    this.products.splice(idx, 1);
+    this._saveProducts();
+    return true;
   },
 
   exportData() {
-    const data = {
-      version: '4.0.0',
-      exportedAt: new Date().toISOString(),
-      products: this.products,
-      customAttributes: ProductTypes.getCustomAttributes()
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `inventory-export-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    Helpers.showToast(I18n.t('successExport'), 'success');
+    Backup.exportPlain();
   },
 
   openCustomAttrModal() {

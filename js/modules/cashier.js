@@ -2,9 +2,44 @@ const Cashier = {
   cart: [],
   products: [],
 
-  init() {
-    this.cart = Storage.get('cart') || [];
+  _loadProducts() {
     this.products = Storage.get('products') || [];
+  },
+
+  _loadCart() {
+    this.cart = Storage.get('cart') || [];
+  },
+
+  _restoreStock(item) {
+    this._loadProducts();
+    const product = this.products.find(p => p.id === item.productId);
+    if (product) {
+      product.quantity += item.quantity;
+      Storage.set('products', this.products);
+    } else {
+      // Product was auto-deleted to trash, restore it
+      const trash = Storage.get('trash') || [];
+      const trashIdx = trash.findIndex(t => t.id === item.productId && t.autoDeleted);
+      if (trashIdx !== -1) {
+        const restored = trash[trashIdx];
+        restored.quantity = item.quantity;
+        delete restored.deletedAt;
+        delete restored.deletedBy;
+        delete restored.autoDeleted;
+        trash.splice(trashIdx, 1);
+        Storage.set('trash', trash);
+        this._loadProducts();
+        this.products.push(restored);
+        Storage.set('products', this.products);
+      }
+    }
+    this._loadProducts();
+    this.renderProducts();
+  },
+
+  init() {
+    this._loadCart();
+    this._loadProducts();
     if (this.products.length === 0) {
       const oldBooks = Storage.get('books') || [];
       this.products = oldBooks.map(b => ({
@@ -100,13 +135,18 @@ const Cashier = {
   },
 
   bindEvents() {
-    document.getElementById('searchInput').addEventListener('input', Helpers.debounce(() => this.renderProducts(), 300));
+    document.getElementById('searchInput').addEventListener('input', Helpers.debounce(() => {
+      this._loadProducts();
+      this.renderProducts();
+    }, 300));
 
     document.getElementById('clearCartBtn').addEventListener('click', () => {
       if (Helpers.confirm(I18n.t('confirmClearCart'))) {
+        this.cart.forEach(item => this._restoreStock(item));
         this.cart = [];
         Storage.set('cart', this.cart);
         this.renderCart();
+        this.renderProducts();
       }
     });
 
@@ -114,6 +154,7 @@ const Cashier = {
   },
 
   quickAdd(id) {
+    this._loadProducts();
     const product = this.products.find(p => p.id === id);
     if (!product || product.quantity === 0) return;
 
@@ -126,6 +167,23 @@ const Cashier = {
     if (quantity > product.quantity) {
       Helpers.showToast(I18n.t('outOfStock'), 'danger');
       return;
+    }
+
+    // Reduce stock immediately
+    product.quantity -= quantity;
+    Storage.set('products', this.products);
+
+    // Auto-delete if stock hits zero
+    if (product.quantity === 0) {
+      const trash = Storage.get('trash') || [];
+      product.deletedAt = new Date().toISOString();
+      product.deletedBy = Auth.getSession()?.username || 'unknown';
+      product.autoDeleted = true;
+      trash.push(product);
+      Storage.set('trash', trash);
+
+      this._loadProducts();
+      this.renderProducts();
     }
 
     const existing = this.cart.find(c => c.productId === id);
@@ -157,30 +215,76 @@ const Cashier = {
       return;
     }
 
-    const product = this.products.find(p => p.id === item.productId);
-    if (product && newQty > product.quantity) {
-      Helpers.showToast(I18n.t('outOfStock'), 'danger');
-      return;
+    const diff = newQty - item.quantity;
+    this._loadProducts();
+    let product = this.products.find(p => p.id === item.productId);
+
+    if (diff > 0) {
+      // Increasing cart quantity - need stock available
+      if (!product || diff > product.quantity) {
+        Helpers.showToast(I18n.t('outOfStock'), 'danger');
+        return;
+      }
+      product.quantity -= diff;
+      Storage.set('products', this.products);
+
+      if (product.quantity === 0) {
+        const trash = Storage.get('trash') || [];
+        product.deletedAt = new Date().toISOString();
+        product.deletedBy = Auth.getSession()?.username || 'unknown';
+        product.autoDeleted = true;
+        trash.push(product);
+        Storage.set('trash', trash);
+      }
+    } else {
+      // Decreasing cart quantity - restore stock
+      if (product) {
+        product.quantity += Math.abs(diff);
+        Storage.set('products', this.products);
+      } else {
+        // Product was auto-deleted, restore from trash
+        const trash = Storage.get('trash') || [];
+        const trashIdx = trash.findIndex(t => t.id === item.productId && t.autoDeleted);
+        if (trashIdx !== -1) {
+          const restored = trash[trashIdx];
+          restored.quantity = Math.abs(diff);
+          delete restored.deletedAt;
+          delete restored.deletedBy;
+          delete restored.autoDeleted;
+          trash.splice(trashIdx, 1);
+          Storage.set('trash', trash);
+          this._loadProducts();
+          this.products.push(restored);
+          Storage.set('products', this.products);
+        }
+      }
     }
 
     item.quantity = newQty;
     Storage.set('cart', this.cart);
+    this._loadProducts();
     this.renderCart();
+    this.renderProducts();
   },
 
   removeItem(index) {
+    const item = this.cart[index];
+    if (!item) return;
+
     const items = document.querySelectorAll('.cart-item');
-    if (items[index]) {
-      items[index].classList.add('removing');
-      setTimeout(() => {
-        this.cart.splice(index, 1);
-        Storage.set('cart', this.cart);
-        this.renderCart();
-      }, 250);
-    } else {
+    const doRemove = () => {
+      this._restoreStock(item);
       this.cart.splice(index, 1);
       Storage.set('cart', this.cart);
       this.renderCart();
+      this.renderProducts();
+    };
+
+    if (items[index]) {
+      items[index].classList.add('removing');
+      setTimeout(doRemove, 250);
+    } else {
+      doRemove();
     }
   },
 
@@ -192,24 +296,17 @@ const Cashier = {
 
     if (!Helpers.confirm(I18n.t('confirmCheckout'))) return;
 
-    const products = Storage.get('products') || [];
     const now = new Date();
     let totalQuantity = 0;
     let totalPrice = 0;
     let totalProfit = 0;
 
     const soldItems = this.cart.map(item => {
-      const product = products.find(p => p.id === item.productId);
       const itemTotal = item.price * item.quantity;
       const itemProfit = (item.price - item.cost) * item.quantity;
       totalQuantity += item.quantity;
       totalPrice += itemTotal;
       totalProfit += itemProfit;
-
-      if (product) {
-        product.quantity -= item.quantity;
-        product.updatedAt = now.toISOString();
-      }
 
       return {
         productId: item.productId,
@@ -222,8 +319,7 @@ const Cashier = {
       };
     });
 
-    Storage.set('products', products);
-
+    // Stock already reduced at add-to-cart time, just record transaction
     const transactionNumber = (Storage.get('transactions') || []).length + 1;
     const transaction = {
       transactionId: `INV-${String(transactionNumber).padStart(4, '0')}`,
@@ -244,7 +340,6 @@ const Cashier = {
 
     this.cart = [];
     Storage.set('cart', this.cart);
-    this.products = products;
     this.renderCart();
     this.renderProducts();
     Helpers.showToast(I18n.t('successCheckout'), 'success');

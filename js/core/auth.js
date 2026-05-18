@@ -9,19 +9,24 @@ const Auth = {
         role: user.role,
         loginAt: new Date().toISOString()
       };
-      Storage.set('session', session);
+      sessionStorage.setItem('library_session', JSON.stringify(session));
       return { success: true, user: session };
     }
     return { success: false, error: 'loginError' };
   },
 
   logout() {
-    Storage.remove('session');
+    sessionStorage.removeItem('library_session');
     window.location.href = 'index.html';
   },
 
   getSession() {
-    return Storage.get('session');
+    try {
+      const raw = sessionStorage.getItem('library_session');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
   },
 
   isLoggedIn() {

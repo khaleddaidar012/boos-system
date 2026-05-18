@@ -1,6 +1,7 @@
-(function() {
-  const users = Storage.get('users');
-  if (users && users.length > 0) return;
+const SeedData = {
+  run() {
+    const users = Storage.get('users');
+    if (users && users.length > 0) return;
 
   const defaultUsers = [
     {
@@ -266,4 +267,5 @@
   Storage.set('customAttributes', []);
 
   console.log('Seed data initialized.');
-})();
+  }
+};

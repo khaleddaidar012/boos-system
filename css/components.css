@@ -153,6 +153,15 @@
   opacity: 0.9;
 }
 
+.btn-info {
+  background: var(--info);
+  color: #fff;
+}
+
+.btn-info:hover {
+  opacity: 0.9;
+}
+
 .btn-danger {
   background: var(--danger);
   color: #fff;

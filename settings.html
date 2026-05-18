@@ -40,6 +40,10 @@
           <span class="nav-icon">👥</span>
           <span class="nav-label" data-i18n="employees"></span>
         </a>
+        <a href="debts.html" class="nav-item admin-only">
+          <span class="nav-icon">💳</span>
+          <span class="nav-label" data-i18n="debts"></span>
+        </a>
         <a href="trash.html" class="nav-item">
           <span class="nav-icon">🗑️</span>
           <span class="nav-label" data-i18n="trash"></span>
@@ -93,24 +97,64 @@
           </div>
         </div>
 
-        <div class="settings-section">
-          <h3 class="settings-section-title" data-i18n="backupRestore"></h3>
+        <div class="settings-section admin-only" id="exportSection">
+          <h3 class="settings-section-title">📤 Export Data</h3>
           <div class="settings-row">
             <div>
-              <div class="settings-row-label" data-i18n="exportData"></div>
-              <div class="settings-row-desc">Download all data as JSON backup file</div>
+              <div class="settings-row-label" data-i18n="exportPlainData"></div>
+              <div class="settings-row-desc" data-i18n="exportPlainDesc"></div>
             </div>
-            <button class="btn btn-success" id="exportBtn">Export Data</button>
+            <button class="btn btn-info" id="exportPlainBtn">📤 <span data-i18n="exportPlain"></span></button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="exportSecureBackup"></div>
+              <div class="settings-row-desc" data-i18n="exportSecureDesc"></div>
+            </div>
+            <button class="btn btn-success" id="exportSecureBtn">🔐 <span data-i18n="exportSecure"></span></button>
           </div>
           <div class="settings-row">
             <div>
               <div class="settings-row-label" data-i18n="importData"></div>
-              <div class="settings-row-desc">Restore data from JSON backup file</div>
+              <div class="settings-row-desc" data-i18n="importDesc"></div>
             </div>
             <div>
               <input type="file" id="importFile" accept=".json" style="display:none;">
-              <button class="btn btn-warning" id="importBtn">Import Data</button>
+              <button class="btn btn-warning" id="importBtn">📥 <span data-i18n="import"></span></button>
             </div>
+          </div>
+        </div>
+
+        <div class="settings-section admin-only" id="autobackupSection">
+          <h3 class="settings-section-title">🔄 Automatic Daily Backups</h3>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">System auto-backup status</div>
+              <div class="settings-row-desc" id="autobackupStatus">Checking...</div>
+            </div>
+            <div id="autobackupActions"></div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-section-title">🔐 Security</h3>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Logout</div>
+              <div class="settings-row-desc">Sign out of your account</div>
+            </div>
+            <button class="btn btn-danger" id="logoutBtn">🚪 Logout</button>
+          </div>
+        </div>
+
+        <div class="settings-section admin-only" id="masterPwSection">
+          <h3 class="settings-section-title">🔑 Backup Encryption Key</h3>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Master Password</div>
+              <div class="settings-row-desc" id="masterPwStatus">Not set — required for encrypted backups</div>
+            </div>
+            <button class="btn btn-warning" id="setMasterPwBtn">🔑 Set Key</button>
           </div>
         </div>
 
@@ -147,6 +191,7 @@
     Theme.init();
     I18n.init();
     Snapshot.initAutoSnapshot();
+    AutoBackup.checkAndRun();
     PageTransitions.init();
 
     const session = Auth.getSession();
@@ -154,7 +199,9 @@
     document.getElementById('userRole').textContent = session.role;
     document.getElementById('userAvatar').textContent = session.username.charAt(0).toUpperCase();
 
-    if (Auth.isWorker()) {
+    const isAdmin = Auth.isAdmin();
+
+    if (!isAdmin) {
       document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
     }
 
@@ -182,8 +229,38 @@
       langBtn.textContent = I18n.getLanguage() === 'en' ? 'عربي' : 'EN';
     });
 
-    document.getElementById('exportBtn').addEventListener('click', () => {
-      Backup.exportData();
+    if (isAdmin) {
+      document.getElementById('exportPlainBtn').addEventListener('click', () => {
+        Backup.exportPlain();
+      });
+
+      document.getElementById('exportSecureBtn').addEventListener('click', () => {
+        Backup.exportSecure();
+      });
+
+      renderAutoBackupStatus();
+      renderMasterPwStatus();
+
+      document.getElementById('setMasterPwBtn').addEventListener('click', () => {
+        const current = localStorage.getItem('admin_master_pw');
+        let newPw;
+        if (current) {
+          newPw = prompt('Enter new backup encryption key (min 4 chars):');
+        } else {
+          newPw = prompt('Set backup encryption key (min 4 chars):');
+        }
+        if (!newPw || newPw.length < 4) {
+          Helpers.showToast('Key must be at least 4 characters', 'warning');
+          return;
+        }
+        localStorage.setItem('admin_master_pw', newPw);
+        renderMasterPwStatus();
+        Helpers.showToast('Encryption key saved', 'success');
+      });
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      Auth.logout();
     });
 
     document.getElementById('importBtn').addEventListener('click', () => {
@@ -195,6 +272,36 @@
         Backup.importData(e.target.files[0]);
       }
     });
+
+    function renderMasterPwStatus() {
+      const el = document.getElementById('masterPwStatus');
+      const has = !!localStorage.getItem('admin_master_pw');
+      el.textContent = has ? 'Active — used for encrypted daily backups' : 'Not set — required for encrypted backups';
+    }
+
+    function renderAutoBackupStatus() {
+      const statusEl = document.getElementById('autobackupStatus');
+      const actionsEl = document.getElementById('autobackupActions');
+      const lastRun = AutoBackup.getLastRunTime();
+      const latest = AutoBackup.getLatest();
+
+      if (lastRun) {
+        const date = new Date(lastRun);
+        const timeStr = date.toLocaleString();
+        statusEl.textContent = `Last backup: ${timeStr}`;
+      } else {
+        statusEl.textContent = 'No backup yet. Will run within 24 hours.';
+      }
+
+      if (latest) {
+        actionsEl.innerHTML = `
+          <button class="btn btn-sm btn-primary" onclick="AutoBackup.restoreLatest(); setTimeout(() => window.location.reload(), 1000);">Restore Latest</button>
+          <button class="btn btn-sm btn-secondary" onclick="AutoBackup.exportLatestAsFile()">Download</button>
+        `;
+      } else {
+        actionsEl.innerHTML = '';
+      }
+    }
 
     function renderSnapshots() {
       const snapshots = Storage.getSnapshotHistory();
