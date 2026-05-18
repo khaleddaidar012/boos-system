@@ -30,6 +30,14 @@
   --topbar-height: 64px;
 }
 
+html.dark {
+  background: #0f0f1a;
+}
+
+html.dark body {
+  background: #0f0f1a;
+}
+
 .dark {
   --bg-primary: #0f0f1a;
   --bg-secondary: #1a1a2e;
