@@ -1,0 +1,329 @@
+.page-transition-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-primary);
+  z-index: 10000;
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.page-transition-overlay.fade-out {
+  opacity: 0;
+}
+
+.page-content {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.page-content.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.app-container {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.app-container.visible {
+  opacity: 1;
+}
+
+.sidebar .nav-item {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.3s ease, transform 0.3s ease, background-color var(--transition), color var(--transition), border-color var(--transition);
+}
+
+[dir="rtl"] .sidebar .nav-item {
+  transform: translateX(8px);
+}
+
+.sidebar .nav-item.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.topbar {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.3s ease, transform 0.3s ease, background-color var(--transition), border-color var(--transition);
+}
+
+.topbar.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.user-badge {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.3s ease, transform 0.3s ease, background-color var(--transition);
+}
+
+.user-badge.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.stat-card {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.4s ease, transform 0.4s ease, box-shadow var(--transition), border-color var(--transition), background-color var(--transition);
+}
+
+.stat-card.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dash-card {
+  opacity: 0;
+  transform: translateY(20px) scale(0.98);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow var(--transition), border-color var(--transition), background-color var(--transition);
+}
+
+.dash-card.animate-in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.book-card {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow var(--transition), border-color var(--transition), background-color var(--transition);
+}
+
+.book-card.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cart-item {
+  opacity: 0;
+  transform: translateX(8px);
+  animation: slideInCart 0.3s ease forwards;
+}
+
+@keyframes slideInCart {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+[dir="rtl"] .cart-item {
+  transform: translateX(-8px);
+}
+
+.cart-item.removing {
+  animation: slideOutCart 0.25s ease forwards;
+}
+
+@keyframes slideOutCart {
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+}
+
+.cart-total-value {
+  transition: all 0.3s ease;
+}
+
+.quick-add-book {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-color var(--transition), background-color var(--transition);
+}
+
+.quick-add-book.fade-in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.txn-item {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: staggerFadeIn 0.3s ease forwards;
+}
+
+@keyframes staggerFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.snapshot-item {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: staggerFadeIn 0.3s ease forwards;
+}
+
+.best-seller-item,
+.low-stock-item {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+[dir="rtl"] .best-seller-item,
+[dir="rtl"] .low-stock-item {
+  transform: translateX(8px);
+}
+
+.best-seller-item.animate-in,
+.low-stock-item.animate-in {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.modal {
+  transform: scale(0.95) translateY(10px);
+  opacity: 0;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+}
+
+.modal-overlay.active .modal {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.modal-overlay {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity 0.2s ease, visibility 0.2s ease, backdrop-filter 0.2s ease;
+}
+
+.alert,
+.toast-notification {
+  animation: toastSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.form-input:focus {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color var(--transition);
+}
+
+.btn {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.badge {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.3s;
+}
+
+.theme-transitioning * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.nav-indicator {
+  position: absolute;
+  width: 3px;
+  height: 0;
+  background: var(--accent-primary);
+  border-radius: 2px;
+  transition: height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[dir="rtl"] .nav-indicator {
+  left: auto;
+  right: 0;
+}
+
+.loading-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.loading-dots span {
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  border-radius: 50%;
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotPulse {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.counter-animate {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.counter-animate.bump {
+  animation: counterBump 0.3s ease;
+}
+
+@keyframes counterBump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.empty-state {
+  opacity: 0;
+  animation: fadeIn 0.4s ease 0.15s forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .page-content, .app-container, .stat-card, .dash-card, .book-card {
+    opacity: 1;
+    transform: none;
+  }
+  
+  .sidebar .nav-item, .topbar, .user-badge {
+    opacity: 1;
+    transform: none;
+  }
+}

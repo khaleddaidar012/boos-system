@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Al-Hasan & Al-Hussein Library — Dashboard</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/transitions.css">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">📚</div>
+        <span class="sidebar-title" data-i18n="appName"></span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-item active">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label" data-i18n="dashboard"></span>
+        </a>
+        <a href="inventory.html" class="nav-item">
+          <span class="nav-icon">📖</span>
+          <span class="nav-label" data-i18n="inventory"></span>
+        </a>
+        <a href="cashier.html" class="nav-item">
+          <span class="nav-icon">💰</span>
+          <span class="nav-label" data-i18n="cashier"></span>
+        </a>
+        <a href="analytics.html" class="nav-item admin-only">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label" data-i18n="analytics"></span>
+        </a>
+        <a href="employees.html" class="nav-item admin-only">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label" data-i18n="employees"></span>
+        </a>
+        <a href="trash.html" class="nav-item">
+          <span class="nav-icon">🗑️</span>
+          <span class="nav-label" data-i18n="trash"></span>
+        </a>
+        <a href="settings.html" class="nav-item">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label" data-i18n="settings"></span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn btn-secondary btn-block" id="logoutBtn">
+          <span data-i18n="logout"></span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h2 class="topbar-title" data-i18n="dashboard"></h2>
+        </div>
+        <div class="topbar-right">
+          <button class="toggle-btn" id="themeToggle" title="Toggle theme">🌙</button>
+          <button class="toggle-btn" id="langToggle" title="Toggle language">EN</button>
+          <div class="user-badge">
+            <div class="user-avatar" id="userAvatar"></div>
+            <div class="user-info">
+              <span class="user-name" id="userName"></span>
+              <span class="user-role" id="userRole"></span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="grid grid-3" id="dashboardCards">
+          <a href="inventory.html" class="dash-card animate-slide-up stagger-1">
+            <div class="dash-card-icon">📖</div>
+            <div class="dash-card-title" data-i18n="inventory"></div>
+            <div class="dash-card-desc" data-i18n="inventoryManagement"></div>
+          </a>
+          <a href="cashier.html" class="dash-card animate-slide-up stagger-2">
+            <div class="dash-card-icon">💰</div>
+            <div class="dash-card-title" data-i18n="cashier"></div>
+            <div class="dash-card-desc" data-i18n="cashierSystem"></div>
+          </a>
+          <a href="analytics.html" class="dash-card animate-slide-up stagger-3 admin-only">
+            <div class="dash-card-icon">📊</div>
+            <div class="dash-card-title" data-i18n="analytics"></div>
+            <div class="dash-card-desc" data-i18n="salesAnalytics"></div>
+          </a>
+          <a href="employees.html" class="dash-card animate-slide-up stagger-4 admin-only">
+            <div class="dash-card-icon">👥</div>
+            <div class="dash-card-title" data-i18n="employees"></div>
+            <div class="dash-card-desc" data-i18n="employeeManagement"></div>
+          </a>
+          <a href="trash.html" class="dash-card animate-slide-up stagger-5">
+            <div class="dash-card-icon">🗑️</div>
+            <div class="dash-card-title" data-i18n="trash"></div>
+            <div class="dash-card-desc">View deleted books</div>
+          </a>
+          <a href="settings.html" class="dash-card animate-slide-up stagger-6">
+            <div class="dash-card-icon">⚙️</div>
+            <div class="dash-card-title" data-i18n="settings"></div>
+            <div class="dash-card-desc">Theme, language, backup</div>
+          </a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/core/storage.js"></script>
+  <script src="js/utils/helpers.js"></script>
+  <script src="js/utils/snapshot.js"></script>
+  <script src="js/utils/page-transitions.js"></script>
+  <script src="js/core/i18n.js"></script>
+  <script src="js/core/theme.js"></script>
+  <script src="js/core/auth.js"></script>
+  <script src="data/seed.js"></script>
+  <script>
+    if (!Auth.requireAuth()) throw new Error('Not authenticated');
+
+    Theme.init();
+    I18n.init();
+    Snapshot.initAutoSnapshot();
+    PageTransitions.init();
+
+    const session = Auth.getSession();
+    document.getElementById('userName').textContent = session.username;
+    document.getElementById('userRole').textContent = session.role;
+    document.getElementById('userAvatar').textContent = session.username.charAt(0).toUpperCase();
+
+    if (Auth.isWorker()) {
+      document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+    }
+
+    const themeBtn = document.getElementById('themeToggle');
+    themeBtn.textContent = Theme.getTheme() === 'dark' ? '☀️' : '🌙';
+    themeBtn.addEventListener('click', () => {
+      SmoothTheme.toggle();
+      themeBtn.textContent = Theme.getTheme() === 'dark' ? '☀️' : '🌙';
+    });
+
+    const langBtn = document.getElementById('langToggle');
+    langBtn.textContent = I18n.getLanguage() === 'en' ? 'عربي' : 'EN';
+    langBtn.addEventListener('click', () => {
+      I18n.toggle();
+      langBtn.textContent = I18n.getLanguage() === 'en' ? 'عربي' : 'EN';
+    });
+  </script>
+</body>
+</html>
