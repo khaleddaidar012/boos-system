@@ -933,6 +933,552 @@
   margin-bottom: 0.5rem;
 }
 
+/* ===================== DEBT MANAGEMENT SYSTEM ===================== */
+
+.debt-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .debt-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .debt-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+.debt-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0;
+}
+
+.debt-tab {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-bottom: -2px;
+}
+
+.debt-tab:hover {
+  color: var(--accent-primary);
+  background: var(--accent-light);
+}
+
+.debt-tab.active {
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+  background: var(--accent-light);
+}
+
+.debt-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.debt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.debt-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.debt-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.debt-card.status-paid {
+  border-left: 4px solid var(--success);
+}
+
+.debt-card.status-partial {
+  border-left: 4px solid var(--warning);
+}
+
+.debt-card.status-unpaid {
+  border-left: 4px solid var(--danger);
+}
+
+.debt-card.status-overdue {
+  border-left-color: #ff4444;
+  background: linear-gradient(to right, var(--danger-light), var(--bg-secondary));
+}
+
+.debt-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: var(--transition);
+  gap: 1rem;
+}
+
+.debt-card-header:hover {
+  background: var(--accent-light);
+}
+
+.debt-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.debt-card-name {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.debt-card-phone {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.debt-card-amounts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.debt-card-remaining {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.debt-status-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.debt-status-badge.status-paid {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.debt-status-badge.status-partial {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.debt-status-badge.status-unpaid {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.debt-expand-arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: 0.5rem;
+}
+
+[dir="rtl"] .debt-expand-arrow {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+.debt-expand-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+.debt-progress-bar {
+  height: 4px;
+  background: var(--bg-tertiary);
+  margin: 0;
+}
+
+.debt-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--success), var(--accent-primary));
+  transition: width 0.4s ease;
+}
+
+.debt-card-details {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.debt-card-details.expanded {
+  max-height: 1000px;
+}
+
+.debt-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.debt-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.debt-detail-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.debt-detail-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.debt-detail-value.paid {
+  color: var(--success);
+}
+
+.debt-detail-value.remaining {
+  color: var(--danger);
+}
+
+.debt-detail-value.overdue {
+  color: #ff4444;
+}
+
+.debt-notes {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+}
+
+.debt-notes-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.debt-notes p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.debt-transactions {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.debt-transactions h5 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.transactions-list {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.transaction-date {
+  color: var(--text-muted);
+  min-width: 90px;
+}
+
+.transaction-amount {
+  font-weight: 600;
+  color: var(--success);
+}
+
+.transaction-note {
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.no-transactions-msg {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 1rem;
+}
+
+.debt-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  flex-wrap: wrap;
+}
+
+/* Payment Modal */
+.payment-debt-info {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.payment-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.payment-info-row:last-child {
+  border-bottom: none;
+}
+
+.payment-info-row.highlight {
+  background: var(--accent-light);
+  margin: 0.5rem -1rem -1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.payment-info-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.payment-info-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Debt Logs */
+.debt-logs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.log-item {
+  padding: 1rem;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent-primary);
+}
+
+.log-item.log-action-created {
+  border-left-color: var(--info);
+}
+
+.log-item.log-action-updated {
+  border-left-color: var(--warning);
+}
+
+.log-item.log-action-payment {
+  border-left-color: var(--success);
+}
+
+.log-item.log-action-deleted {
+  border-left-color: var(--danger);
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.log-action {
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--accent-light);
+  color: var(--accent-primary);
+}
+
+.log-action-created {
+  background: var(--info-light);
+  color: var(--info);
+}
+
+.log-action-updated {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.log-action-payment {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.log-action-deleted {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.log-date {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.log-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.log-detail {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.log-detail strong {
+  color: var(--text-primary);
+}
+
+.log-admin {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+[dir="rtl"] .log-admin {
+  text-align: left;
+}
+
+.no-logs-msg {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem;
+}
+
+/* Modal sizes */
+.debt-modal-overlay .modal {
+  max-width: 650px;
+  width: 95%;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.debt-modal-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.payment-modal-overlay .modal {
+  max-width: 450px;
+  width: 95%;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-modal-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.log-modal-overlay .modal {
+  max-width: 600px;
+  width: 95%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.log-modal-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.form-select-sm {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  width: auto;
+  min-width: 150px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .debt-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .debt-card-amounts {
+    align-items: flex-start;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .debt-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .debt-card-actions {
+    flex-direction: column;
+  }
+
+  .debt-card-actions .btn {
+    width: 100%;
+  }
+
+  .debt-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .debt-tab {
+    white-space: nowrap;
+  }
+}
+
 /* ===================== QUICK ADD + ADVANCED TOGGLE ===================== */
 
 .btn-advanced-toggle {
