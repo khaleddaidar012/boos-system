@@ -1,29 +1,86 @@
 :root {
+  /* ===== COLORS ===== */
+  --primary: #4361ee;
+  --primary-hover: #3a56d4;
+  --primary-light: rgba(67, 97, 238, 0.1);
+  --secondary: #7c3aed;
+  --secondary-hover: #6d28d9;
+  --secondary-light: rgba(124, 58, 237, 0.1);
+  --success: #2ecc71;
+  --success-hover: #27ae60;
+  --success-light: rgba(46, 204, 113, 0.1);
+  --warning: #f39c12;
+  --warning-hover: #e67e22;
+  --warning-light: rgba(243, 156, 18, 0.1);
+  --danger: #e74c3c;
+  --danger-hover: #c0392b;
+  --danger-light: rgba(231, 76, 60, 0.1);
+  --info: #3498db;
+  --info-hover: #2980b9;
+  --info-light: rgba(52, 152, 219, 0.1);
+  --white: #ffffff;
+
+  /* ===== BACKGROUNDS ===== */
   --bg-primary: #f5f7fa;
   --bg-secondary: #ffffff;
   --bg-tertiary: #e8ecf1;
+
+  /* ===== TEXT ===== */
   --text-primary: #1a1a2e;
   --text-secondary: #4a4a68;
   --text-muted: #8888a0;
+
+  /* ===== BORDER ===== */
   --border-color: #e0e0e8;
-  --accent-primary: #4361ee;
-  --accent-hover: #3a56d4;
-  --accent-light: rgba(67, 97, 238, 0.1);
-  --success: #2ecc71;
-  --success-light: rgba(46, 204, 113, 0.1);
-  --warning: #f39c12;
-  --warning-light: rgba(243, 156, 18, 0.1);
-  --danger: #e74c3c;
-  --danger-light: rgba(231, 76, 60, 0.1);
-  --info: #3498db;
-  --info-light: rgba(52, 152, 219, 0.1);
+
+  /* ===== TYPOGRAPHY SCALE ===== */
+  --font-xs: 0.75rem;
+  --font-sm: 0.85rem;
+  --font-base: 0.95rem;
+  --font-md: 1rem;
+  --font-lg: 1.125rem;
+  --font-xl: 1.25rem;
+  --font-2xl: 1.5rem;
+  --font-3xl: 2rem;
+  --font-4xl: 2.5rem;
+
+  /* ===== FONT WEIGHTS ===== */
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* ===== LINE HEIGHTS ===== */
+  --lh-tight: 1.2;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.75;
+
+  /* ===== SPACING ===== */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  /* ===== SHADOWS ===== */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* ===== RADII ===== */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* ===== BACKWARD COMPATIBILITY ALIASES ===== */
+  --accent-primary: var(--primary);
+  --accent-hover: var(--primary-hover);
+  --accent-light: var(--primary-light);
+
+  /* ===== MISC ===== */
   --transition: all 0.25s ease;
   --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   --sidebar-width: 260px;
@@ -39,24 +96,46 @@ html.dark body {
 }
 
 .dark {
+  /* ===== COLORS ===== */
+  --primary: #5a7bff;
+  --primary-hover: #4a68e0;
+  --primary-light: rgba(90, 123, 255, 0.15);
+  --secondary: #a78bfa;
+  --secondary-hover: #8b6fe0;
+  --secondary-light: rgba(167, 139, 250, 0.15);
+  --success: #27ae60;
+  --success-hover: #219a52;
+  --success-light: rgba(39, 174, 96, 0.15);
+  --warning: #e67e22;
+  --warning-hover: #d35400;
+  --warning-light: rgba(230, 126, 34, 0.15);
+  --danger: #c0392b;
+  --danger-hover: #a93226;
+  --danger-light: rgba(192, 57, 43, 0.15);
+  --info: #2980b9;
+  --info-hover: #2471a3;
+  --info-light: rgba(41, 128, 185, 0.15);
+  --white: #ffffff;
+
+  /* ===== BACKGROUNDS ===== */
   --bg-primary: #0f0f1a;
   --bg-secondary: #1a1a2e;
   --bg-tertiary: #252540;
+
+  /* ===== TEXT ===== */
   --text-primary: #e8e8f0;
   --text-secondary: #b0b0c8;
   --text-muted: #6a6a88;
+
+  /* ===== BORDER ===== */
   --border-color: #2a2a45;
-  --accent-primary: #5a7bff;
-  --accent-hover: #4a68e0;
-  --accent-light: rgba(90, 123, 255, 0.15);
-  --success: #27ae60;
-  --success-light: rgba(39, 174, 96, 0.15);
-  --warning: #e67e22;
-  --warning-light: rgba(230, 126, 34, 0.15);
-  --danger: #c0392b;
-  --danger-light: rgba(192, 57, 43, 0.15);
-  --info: #2980b9;
-  --info-light: rgba(41, 128, 185, 0.15);
+
+  /* ===== BACKWARD COMPATIBILITY ALIASES ===== */
+  --accent-primary: var(--primary);
+  --accent-hover: var(--primary-hover);
+  --accent-light: var(--primary-light);
+
+  /* ===== SHADOWS ===== */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);

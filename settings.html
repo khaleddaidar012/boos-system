@@ -158,6 +158,17 @@
           </div>
         </div>
 
+        <div class="settings-section admin-only" id="clearDataSection">
+          <h3 class="settings-section-title">⚠️ Clear Data</h3>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Clear Debts & Transactions</div>
+              <div class="settings-row-desc">Remove all debts, sales records, and analytics data</div>
+            </div>
+            <button class="btn btn-danger" id="clearDataBtn">🗑️ Clear All</button>
+          </div>
+        </div>
+
         <div class="settings-section admin-only">
           <h3 class="settings-section-title">Daily Snapshots</h3>
           <div class="settings-row">
@@ -178,6 +189,7 @@
 
   <script src="js/core/storage.js"></script>
   <script src="js/utils/helpers.js"></script>
+  <script src="js/ui/ui-kit.js"></script>
   <script src="js/utils/backup.js"></script>
   <script src="js/utils/snapshot.js"></script>
   <script src="js/utils/page-transitions.js"></script>
@@ -256,6 +268,27 @@
         localStorage.setItem('admin_master_pw', newPw);
         renderMasterPwStatus();
         Helpers.showToast('Encryption key saved', 'success');
+      });
+
+      document.getElementById('clearDataBtn').addEventListener('click', () => {
+        const pw = prompt('Enter reset password to confirm:');
+        if (pw !== '01092912431kd') {
+          Helpers.showToast('Wrong password!', 'warning');
+          return;
+        }
+        if (!confirm('Delete ALL data except admin account? This cannot be undone!')) return;
+        const users = Storage.get('users') || [];
+        const adminUsers = users.filter(u => u.role === 'admin');
+        Storage.set('users', adminUsers);
+        Storage.set('products', []);
+        Storage.set('cart', []);
+        Storage.set('transactions', []);
+        Storage.set('trash', []);
+        Storage.set('debts', { owed_to_library: [], we_owe: [] });
+        Storage.set('debt_logs', []);
+        Storage.set('customAttributes', []);
+        Helpers.showToast('All data cleared! Only admin account remains.', 'success');
+        setTimeout(() => window.location.reload(), 1000);
       });
     }
 

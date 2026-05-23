@@ -61,6 +61,7 @@ const Analytics = {
     this.renderTransactions(filtered);
     this.renderBestSellers(filtered);
     this.renderLowStock(filtered);
+    this.renderOutOfStockHistory();
   },
 
   getFilteredTransactions() {
@@ -134,12 +135,14 @@ const Analytics = {
   },
 
   normalizeTransaction(t) {
+    const lang = I18n.getLanguage();
+    const locale = lang === 'ar' ? 'ar-SA' : 'en-US';
     return {
-      transactionId: t.transactionId || t.id || 'N/A',
+      transactionId: t.transactionId || t.id || I18n.t('na'),
       timestamp: t.timestamp || (t.date ? new Date(t.date).getTime() : 0),
       date: t.date ? (t.date.length > 10 ? t.date.split('T')[0] : t.date) : '',
-      time: t.time || (t.date ? new Date(t.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''),
-      employee: t.employee || t.cashier || 'unknown',
+      time: t.time || (t.date ? new Date(t.date).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', hour12: true }) : ''),
+      employee: t.employee || t.cashier || I18n.t('unknown'),
       items: t.items || [],
       totalQuantity: t.totalQuantity || (t.items ? t.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0),
       totalPrice: t.totalPrice || t.total || 0,
@@ -171,6 +174,8 @@ const Analytics = {
     const canvas = document.getElementById('salesChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    const lang = I18n.getLanguage();
+    const locale = lang === 'ar' ? 'ar-SA' : 'en-US';
 
     const days = [];
     const now = new Date();
@@ -191,7 +196,7 @@ const Analytics = {
       d.setDate(d.getDate() - i);
       days.push({
         date: d.toISOString().split('T')[0],
-        label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        label: d.toLocaleDateString(locale, { month: 'short', day: 'numeric' }),
         sales: 0,
         profit: 0
       });
@@ -298,10 +303,10 @@ const Analytics = {
           <table class="txn-details-table">
             <thead>
               <tr>
-                <th>Product</th>
-                <th>Qty</th>
-                <th>Price</th>
-                <th>Profit</th>
+                <th>${I18n.t('product')}</th>
+                <th>${I18n.t('qty')}</th>
+                <th>${I18n.t('price')}</th>
+                <th>${I18n.t('profit')}</th>
               </tr>
             </thead>
             <tbody>
@@ -316,8 +321,8 @@ const Analytics = {
             </tbody>
           </table>
           <div class="txn-details-footer">
-            <span>Total Items: ${t.totalQuantity}</span>
-            <span>Total Profit: ${Helpers.formatCurrency(t.totalProfit)}</span>
+            <span>${I18n.t('totalItems')}: ${t.totalQuantity}</span>
+            <span>${I18n.t('totalProfit')}: ${Helpers.formatCurrency(t.totalProfit)}</span>
           </div>
         </div>
       </div>
@@ -346,7 +351,7 @@ const Analytics = {
       .slice(0, 5);
 
     if (bestSellers.length === 0) {
-      container.innerHTML = '<p class="empty-state-subtext">No sales data for this period</p>';
+      container.innerHTML = `<p class="empty-state-subtext">${I18n.t('noSalesData')}</p>`;
       return;
     }
 
@@ -354,7 +359,7 @@ const Analytics = {
       <div class="best-seller-item" style="animation-delay: ${i * 0.08}s">
         <span class="best-seller-rank">#${i + 1}</span>
         <span class="best-seller-name">${Helpers.escapeHtml(product.name)}</span>
-        <span class="best-seller-qty">${product.quantity} sold</span>
+        <span class="best-seller-qty">${product.quantity} ${I18n.t('sold')}</span>
         <span class="best-seller-revenue">${Helpers.formatCurrency(product.revenue)}</span>
       </div>
     `).join('');
@@ -367,22 +372,65 @@ const Analytics = {
     if (!container) return;
 
     const products = Storage.get('products') || [];
-    const lowStockProducts = products.filter(p => p.quantity < 10).sort((a, b) => a.quantity - b.quantity).slice(0, 5);
+    const lowStockProducts = products.filter(p => p.quantity > 0 && p.quantity < 10).sort((a, b) => a.quantity - b.quantity).slice(0, 5);
 
     if (lowStockProducts.length === 0) {
-      container.innerHTML = '<p class="empty-state-subtext">All products are well stocked</p>';
+      container.innerHTML = `<p class="empty-state-subtext">${I18n.t('allProductsStocked')}</p>`;
       return;
     }
 
-    container.innerHTML = lowStockProducts.map((product, i) => `
-      <div class="low-stock-item" style="animation-delay: ${i * 0.08}s">
-        <span class="low-stock-name">${Helpers.escapeHtml(product.name)}</span>
-        <span class="low-stock-qty ${product.quantity === 0 ? 'out-of-stock' : 'low-stock'}">
-          ${product.quantity === 0 ? I18n.t('outOfStock') : `${product.quantity} ${I18n.t('left')}`}
-        </span>
-      </div>
-    `).join('');
+    container.innerHTML = lowStockProducts.map((product, i) => {
+      const locationLine = product.storageLocation
+        ? `<span class="low-stock-location">📍 ${Helpers.escapeHtml(product.storageLocation)}</span>`
+        : '';
+      return `
+        <div class="low-stock-item" style="animation-delay: ${i * 0.08}s">
+          <span class="low-stock-name">${Helpers.escapeHtml(product.name)}</span>
+          ${locationLine}
+          <span class="low-stock-qty low-stock">
+            ${product.quantity} ${I18n.t('left')}
+          </span>
+        </div>
+      `;
+    }).join('');
 
     PageTransitions.animateList(container, '.low-stock-item');
+  },
+
+  renderOutOfStockHistory() {
+    const container = document.getElementById('outOfStockProducts');
+    if (!container) return;
+
+    const products = Storage.get('products') || [];
+    const outOfStockProducts = products.filter(p => p.quantity === 0);
+
+    if (outOfStockProducts.length === 0) {
+      container.innerHTML = `<p class="empty-state-subtext">${I18n.t('noOutOfStock')}</p>`;
+      return;
+    }
+
+    container.innerHTML = outOfStockProducts.map((product, i) => {
+      const location = product.storageLocation || product.history?.lastStorageLocation || I18n.t('na');
+      const statusChange = product.history?.lastStatusChange;
+      const statusInfo = statusChange
+        ? `<span class="oos-status-info">${I18n.t('statusOutOfStock')} since ${Helpers.formatDate(statusChange.at)}</span>`
+        : `<span class="oos-status-info">${I18n.t('statusOutOfStock')}</span>`;
+
+      return `
+        <div class="oos-item" style="animation-delay: ${i * 0.06}s">
+          <div class="oos-item-header">
+            <span class="oos-item-name">${Helpers.escapeHtml(product.name)}</span>
+            <span class="badge badge-danger">${I18n.t('outOfStock')}</span>
+          </div>
+          <div class="oos-item-details">
+            <div class="oos-detail">📍 ${I18n.t('lastKnownLocation')}: ${Helpers.escapeHtml(location)}</div>
+            <div class="oos-detail">📦 ${I18n.t('productType')}: ${ProductTypes.getTypeIcon(product.type)} ${ProductTypes.getTypeLabel(product.type)}</div>
+            ${statusInfo}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    PageTransitions.animateList(container, '.oos-item');
   }
 };

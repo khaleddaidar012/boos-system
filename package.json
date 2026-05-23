@@ -1,0 +1,62 @@
+{
+  "name": "al-hasan-al-hussein-library",
+  "version": "1.0.0",
+  "description": "Al-Hasan & Al-Hussein Library Management System",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "build:dir": "electron-builder --win --dir",
+    "pack": "electron-packager . \"Al-Hasan & Al-Hussein Library\" --platform=win32 --arch=x64 --icon=build/icon.ico --out=build-output --asar --overwrite",
+    "pack:installer": "electron-builder --win"
+  },
+  "author": "Khaled",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.alhasan.alhussein.library",
+    "productName": "Al-Hasan & Al-Hussein Library",
+    "copyright": "Copyright © 2026",
+    "directories": {
+      "output": "build-output"
+    },
+    "files": [
+      "**/*",
+      "!dist/**",
+      "!node_modules/.cache/**",
+      "!create-icon.js",
+      "!generate-icon.ps1"
+    ],
+    "asar": true,
+    "compression": "maximum",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Al-Hasan Library",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "unicode": true,
+      "license": "build/license.txt"
+    }
+  }
+}

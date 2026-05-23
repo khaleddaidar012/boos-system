@@ -1,0 +1,29 @@
+/* Theme transition on html element */
+html {
+  transition: background-color var(--transition-slow);
+}
+
+/* Smooth content fade-in on route change */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#content > * {
+  animation: fadeIn 0.25s ease forwards;
+}
+
+/* Sidebar slide transition */
+.sidebar,
+.sidebar-overlay {
+  transition: transform var(--transition), opacity var(--transition);
+}
+
+/* Navbar theme toggle icon swap */
+.navbar-icon-btn svg {
+  transition: transform var(--transition);
+}
+
+.navbar-icon-btn:hover svg {
+  transform: scale(1.1);
+}

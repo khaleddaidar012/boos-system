@@ -520,6 +520,7 @@
 
         <div class="login-footer">
           <p data-i18n="secureLogin"></p>
+          <p style="margin-top: 1rem;"><button type="button" id="resetPwBtn" style="background: none; border: none; color: var(--accent-primary); cursor: pointer; font-size: 0.85rem; text-decoration: underline;">Reset Admin Password</button></p>
         </div>
       </div>
     </div>
@@ -564,7 +565,7 @@
       const inp = document.getElementById('loginPassword');
       const isP = inp.type === 'password';
       inp.type = isP ? 'text' : 'password';
-      document.getElementById('passwordToggle').textContent = isP ? '🙈' : '👁️';
+      document.getElementById('passwordToggle').textContent = isP ? '👁️' : '👁️';
     });
 
     const remembered = localStorage.getItem('library_remember');
@@ -601,6 +602,22 @@
           document.getElementById('loginPassword').focus();
         }
       }, 600);
+    });
+
+    document.getElementById('resetPwBtn').addEventListener('click', () => {
+      const pw = prompt('Enter reset password:');
+      if (pw !== '01092912431kd') {
+        alert('Wrong password!');
+        return;
+      }
+      if (!confirm('Reset admin password to "admin123"? This will reset all user passwords to defaults.')) return;
+      const users = Storage.get('users') || [];
+      users.forEach(u => {
+        if (u.role === 'admin') u.password = 'admin123';
+        if (u.role === 'worker') u.password = 'worker123';
+      });
+      Storage.set('users', users);
+      alert('Password reset to: admin123');
     });
   </script>
 </body>

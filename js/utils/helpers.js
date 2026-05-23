@@ -15,7 +15,10 @@ const Helpers = {
   },
 
   formatCurrency(amount) {
-    return parseFloat(amount).toFixed(2);
+    const num = Number(amount);
+    if (isNaN(num)) return '0';
+    if (Number.isInteger(num)) return String(num);
+    return parseFloat(num.toFixed(2)).toString();
   },
 
   formatNumber(num) {

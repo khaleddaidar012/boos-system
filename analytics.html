@@ -80,47 +80,47 @@
 
       <div class="page-content">
         <div class="time-filters">
-          <button class="time-filter-btn active" data-filter="today">Today</button>
-          <button class="time-filter-btn" data-filter="yesterday">Yesterday</button>
-          <button class="time-filter-btn" data-filter="last7days">Last 7 Days</button>
-          <button class="time-filter-btn" data-filter="thisWeek">This Week</button>
-          <button class="time-filter-btn" data-filter="lastWeek">Last Week</button>
-          <button class="time-filter-btn" data-filter="thisMonth">This Month</button>
-          <button class="time-filter-btn" data-filter="lastMonth">Last Month</button>
-          <button class="time-filter-btn" data-filter="last30days">Last 30 Days</button>
-          <button class="time-filter-btn" data-filter="custom">Custom Range</button>
-          <button class="time-filter-btn" data-filter="all">All Time</button>
+          <button class="time-filter-btn active" data-filter="today" data-i18n="today"></button>
+          <button class="time-filter-btn" data-filter="yesterday" data-i18n="yesterday"></button>
+          <button class="time-filter-btn" data-filter="last7days" data-i18n="last7Days"></button>
+          <button class="time-filter-btn" data-filter="thisWeek" data-i18n="thisWeek"></button>
+          <button class="time-filter-btn" data-filter="lastWeek" data-i18n="lastWeek"></button>
+          <button class="time-filter-btn" data-filter="thisMonth" data-i18n="thisMonth"></button>
+          <button class="time-filter-btn" data-filter="lastMonth" data-i18n="lastMonth"></button>
+          <button class="time-filter-btn" data-filter="last30days" data-i18n="last30Days"></button>
+          <button class="time-filter-btn" data-filter="custom" data-i18n="customRange"></button>
+          <button class="time-filter-btn" data-filter="all" data-i18n="allTime"></button>
         </div>
 
         <div class="custom-date-range" id="customDateRange">
           <input type="date" id="customStartDate" class="form-input">
-          <span>to</span>
+          <span data-i18n="to"></span>
           <input type="date" id="customEndDate" class="form-input">
-          <button class="btn btn-primary" id="applyCustomRange">Apply</button>
+          <button class="btn btn-primary" id="applyCustomRange" data-i18n="apply"></button>
         </div>
 
         <div class="grid grid-4" id="statCards">
           <div class="stat-card animate-slide-up stagger-1">
-            <div class="stat-card-label">Total Sales</div>
+            <div class="stat-card-label" data-i18n="totalSales"></div>
             <div class="stat-card-value" id="totalSales">0.00</div>
           </div>
           <div class="stat-card animate-slide-up stagger-2">
-            <div class="stat-card-label">Total Profit</div>
+            <div class="stat-card-label" data-i18n="totalProfit"></div>
             <div class="stat-card-value" id="totalProfit" style="color:var(--success);">0.00</div>
           </div>
           <div class="stat-card animate-slide-up stagger-3">
-            <div class="stat-card-label">Total Orders</div>
+            <div class="stat-card-label" data-i18n="totalOrders"></div>
             <div class="stat-card-value" id="totalOrders">0</div>
           </div>
           <div class="stat-card animate-slide-up stagger-4">
-            <div class="stat-card-label">Products Sold</div>
+            <div class="stat-card-label" data-i18n="productsSold"></div>
             <div class="stat-card-value" id="totalProductsSold">0</div>
           </div>
         </div>
 
         <div class="card" style="margin-top:2rem;">
           <div class="card-header">
-            <h3 class="card-title">Sales Chart</h3>
+            <h3 class="card-title" data-i18n="salesChart"></h3>
           </div>
           <div class="card-body">
             <canvas id="salesChart" height="100"></canvas>
@@ -130,13 +130,13 @@
         <div class="grid grid-2" style="margin-top:2rem;">
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Best Sellers</h3>
+              <h3 class="card-title" data-i18n="bestSellers"></h3>
             </div>
             <div class="card-body" id="bestSellers"></div>
           </div>
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Low Stock Alert</h3>
+              <h3 class="card-title" data-i18n="lowStockAlert"></h3>
             </div>
             <div class="card-body" id="lowStock"></div>
           </div>
@@ -144,13 +144,20 @@
 
         <div class="card" style="margin-top:2rem;">
           <div class="card-header">
-            <h3 class="card-title">Recent Transactions</h3>
+            <h3 class="card-title" data-i18n="outOfStockProducts"></h3>
+          </div>
+          <div class="card-body" id="outOfStockProducts"></div>
+        </div>
+
+        <div class="card" style="margin-top:2rem;">
+          <div class="card-header">
+            <h3 class="card-title" data-i18n="recentTransactions"></h3>
           </div>
           <div class="card-body">
             <div id="transactionsList"></div>
             <div class="empty-state" id="emptyState" style="display:none;">
               <div class="empty-state-icon">📊</div>
-              <div class="empty-state-text">No transactions for this period</div>
+              <div class="empty-state-text" data-i18n="noTransactionsPeriod"></div>
             </div>
           </div>
         </div>
@@ -160,6 +167,7 @@
 
   <script src="js/core/storage.js"></script>
   <script src="js/utils/helpers.js"></script>
+  <script src="js/ui/ui-kit.js"></script>
   <script src="js/utils/backup.js"></script>
   <script src="js/utils/snapshot.js"></script>
   <script src="js/utils/page-transitions.js"></script>

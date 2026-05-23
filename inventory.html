@@ -104,7 +104,7 @@
             <div class="stat-card-label" data-i18n="totalProducts"></div>
             <div class="stat-card-value" id="statTotal">0</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card admin-only">
             <div class="stat-card-label" data-i18n="totalValue"></div>
             <div class="stat-card-value" id="statValue">0</div>
           </div>
@@ -164,7 +164,13 @@
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label" data-i18n="price"></label>
-                  <input type="number" id="productPrice" class="form-input" step="0.01" min="0" required>
+                  <input type="number" id="productPrice" class="form-input" step="any" min="0" required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" data-i18n="storageLocation"></label>
+                  <input type="text" id="productStorageLocation" class="form-input" data-i18n="storageLocationPlaceholder">
                 </div>
               </div>
               <div class="form-row">
@@ -191,7 +197,7 @@
                 <div class="form-row admin-only-field">
                   <div class="form-group">
                     <label class="form-label" data-i18n="cost"></label>
-                    <input type="number" id="productCost" class="form-input" step="0.01" min="0">
+                    <input type="number" id="productCost" class="form-input" step="any" min="0">
                   </div>
                 </div>
                 <div class="form-row admin-only-field">
@@ -275,6 +281,7 @@
 
   <script src="js/core/storage.js"></script>
   <script src="js/utils/helpers.js"></script>
+  <script src="js/ui/ui-kit.js"></script>
   <script src="js/utils/backup.js"></script>
   <script src="js/utils/snapshot.js"></script>
   <script src="js/utils/page-transitions.js"></script>

@@ -89,6 +89,8 @@ const Employees = {
       return;
     }
 
+    let updatedUser = null;
+
     if (this.editingId) {
       const idx = this.users.findIndex(u => u.id === this.editingId);
       if (idx === -1) return;
@@ -103,6 +105,7 @@ const Employees = {
       if (password) {
         this.users[idx].password = password;
       }
+      updatedUser = this.users[idx];
     } else {
       if (!password) {
         Helpers.showToast(I18n.t('fillAllFields'), 'warning');
@@ -114,16 +117,33 @@ const Employees = {
         return;
       }
 
-      this.users.push({
+      const newUser = {
         id: Helpers.genId('usr'),
         username: username,
         password: password,
         role: role,
         createdAt: new Date().toISOString()
-      });
+      };
+      this.users.push(newUser);
+      updatedUser = newUser;
     }
 
     Storage.set('users', this.users);
+
+    const session = Auth.getSession();
+    if (session && session.userId === updatedUser.id) {
+      session.username = updatedUser.username;
+      session.role = updatedUser.role;
+      sessionStorage.setItem('library_session', JSON.stringify(session));
+
+      const userNameEl = document.getElementById('userName');
+      const userRoleEl = document.getElementById('userRole');
+      const userAvatarEl = document.getElementById('userAvatar');
+      if (userNameEl) userNameEl.textContent = updatedUser.username;
+      if (userRoleEl) userRoleEl.textContent = updatedUser.role;
+      if (userAvatarEl) userAvatarEl.textContent = updatedUser.username.charAt(0).toUpperCase();
+    }
+
     this.render();
     this.closeModal();
     Helpers.showToast(I18n.t('successSaved'), 'success');

@@ -87,6 +87,7 @@ const Inventory = {
         const nameMatch = p.name.toLowerCase().includes(searchTerm);
         const typeMatch = ProductTypes.getTypeLabel(p.type).toLowerCase().includes(searchTerm);
         const descMatch = (p.description || '').toLowerCase().includes(searchTerm);
+        const locationMatch = (p.storageLocation || '').toLowerCase().includes(searchTerm);
         let attrMatch = false;
         if (p.attributes) {
           attrMatch = Object.values(p.attributes).some(val => {
@@ -94,7 +95,7 @@ const Inventory = {
             return strVal.toLowerCase().includes(searchTerm);
           });
         }
-        return nameMatch || typeMatch || descMatch || attrMatch;
+        return nameMatch || typeMatch || descMatch || locationMatch || attrMatch;
       });
     }
 
@@ -108,23 +109,42 @@ const Inventory = {
     grid.innerHTML = filtered.map((product, i) => this.renderProductCard(product, i)).join('');
   },
 
+  getProductStatus(product) {
+    if (product.quantity === 0) return 'out_of_stock';
+    if (product.quantity < 10) return 'low_stock';
+    return 'in_stock';
+  },
+
+  getStatusBadge(product) {
+    const status = this.getProductStatus(product);
+    switch (status) {
+      case 'out_of_stock':
+        return `<span class="badge badge-danger">${I18n.t('outOfStock')}</span>`;
+      case 'low_stock':
+        return `<span class="badge badge-warning">${I18n.t('lowStock')}: ${product.quantity}</span>`;
+      default:
+        return `<span class="badge badge-success">Qty: ${product.quantity}</span>`;
+    }
+  },
+
   renderProductCard(product, index) {
     const typeDef = ProductTypes.TYPES[product.type];
     const icon = typeDef ? typeDef.icon : '📦';
     const color = typeDef ? typeDef.color : '#8888a0';
     const cardAttrs = ProductTypes.getCardDisplayAttributes(product);
 
-    const stockBadge = product.quantity === 0
-      ? `<span class="badge badge-danger">${I18n.t('outOfStock')}</span>`
-      : product.quantity < 10
-        ? `<span class="badge badge-warning">${I18n.t('lowStock')}: ${product.quantity}</span>`
-        : `<span class="badge badge-success">Qty: ${product.quantity}</span>`;
+    const stockBadge = this.getStatusBadge(product);
 
     let attrHtml = '';
     if (cardAttrs.length > 0) {
       attrHtml = `<div class="product-card-attrs">${cardAttrs.map(a =>
         a.value ? `<span class="product-card-attr"><span class="attr-label">${a.label}:</span> ${Helpers.escapeHtml(String(a.value))}</span>` : ''
       ).filter(Boolean).join('')}</div>`;
+    }
+
+    let locationHtml = '';
+    if (product.storageLocation) {
+      locationHtml = `<div class="product-card-location">📍 ${Helpers.escapeHtml(product.storageLocation)}</div>`;
     }
 
     return `
@@ -139,10 +159,11 @@ const Inventory = {
           <div class="product-card-name">${Helpers.escapeHtml(product.name)}</div>
           <div class="product-card-price">${Helpers.formatCurrency(product.price)}</div>
           ${attrHtml}
+          ${locationHtml}
           <div class="product-card-stock">${stockBadge}</div>
           <div class="product-card-actions">
             <button class="btn btn-sm btn-secondary" onclick="Inventory.info('${product.id}')">${I18n.t('info')}</button>
-            <button class="btn btn-sm btn-primary" onclick="Inventory.addToCart('${product.id}')">${I18n.t('addToCart')}</button>
+            <button class="btn btn-sm btn-primary ${product.quantity === 0 ? 'btn-disabled' : ''}" onclick="${product.quantity === 0 ? `Inventory.showOutOfStockMessage('${Helpers.escapeHtml(product.name)}')` : `Inventory.addToCart('${product.id}')`}">${I18n.t('addToCart')}</button>
             <button class="btn btn-sm btn-warning" onclick="Inventory.edit('${product.id}')">✏️</button>
             <button class="btn btn-sm btn-danger" onclick="Inventory.delete('${product.id}')">🗑️</button>
           </div>
@@ -296,6 +317,7 @@ const Inventory = {
       document.getElementById('productPrice').value = product.price;
       document.getElementById('productCost').value = product.cost;
       document.getElementById('productQuantity').value = product.quantity;
+      document.getElementById('productStorageLocation').value = product.storageLocation || '';
       document.getElementById('productImage').value = product.image || '';
       document.getElementById('productDescription').value = product.description || '';
       this.renderDynamicAttributes(product.type, product.attributes || {});
@@ -371,16 +393,46 @@ const Inventory = {
     // Reload fresh products from storage before saving
     this._loadProducts();
 
+    const priceStr = document.getElementById('productPrice').value.trim();
+    const costStr = document.getElementById('productCost').value.trim();
+    const qtyStr = document.getElementById('productQuantity').value.trim();
+    const storageLocation = document.getElementById('productStorageLocation').value.trim();
+
+    const existingProduct = this.editingId ? this.products.find(p => p.id === this.editingId) : null;
+    const oldStatus = existingProduct ? this.getProductStatus(existingProduct) : null;
+    const oldLocation = existingProduct ? (existingProduct.storageLocation || '') : '';
+
+    const quantity = qtyStr !== '' ? parseInt(qtyStr, 10) : 0;
+    const newStatus = quantity === 0 ? 'out_of_stock' : quantity < 10 ? 'low_stock' : 'in_stock';
+
+    const history = existingProduct ? { ...(existingProduct.history || {}) } : {};
+    history.lastUpdated = new Date().toISOString();
+    if (storageLocation) {
+      history.lastStorageLocation = storageLocation;
+    }
+    if (oldStatus && oldStatus !== newStatus) {
+      history.lastStatusChange = {
+        from: oldStatus,
+        to: newStatus,
+        at: new Date().toISOString()
+      };
+    }
+    if (!history.createdAt) {
+      history.createdAt = new Date().toISOString();
+    }
+
     const product = {
       id: this.editingId || Helpers.genId('prod'),
       name: document.getElementById('productName').value.trim(),
       type: typeId,
-      price: parseFloat(document.getElementById('productPrice').value),
-      cost: parseFloat(document.getElementById('productCost').value),
-      quantity: parseInt(document.getElementById('productQuantity').value),
+      price: priceStr !== '' ? Number(priceStr) : 0,
+      cost: costStr !== '' ? Number(costStr) : 0,
+      quantity: quantity,
+      storageLocation: storageLocation,
       image: document.getElementById('productImage').value.trim(),
       description: document.getElementById('productDescription').value.trim(),
       attributes,
+      history,
       updatedAt: new Date().toISOString()
     };
 
@@ -454,13 +506,20 @@ const Inventory = {
       }
     }
 
-    alert(`${product.name}\nType: ${typeName}\n\nPrice: ${Helpers.formatCurrency(product.price)}\nCost: ${Helpers.formatCurrency(product.cost)}\nQuantity: ${product.quantity}\n${attrLines}\n${product.description || ''}`);
+    alert(`${product.name}\nType: ${typeName}\n\nPrice: ${Helpers.formatCurrency(product.price)}\nCost: ${Helpers.formatCurrency(product.cost)}\nQuantity: ${product.quantity}\nLocation: ${product.storageLocation || 'N/A'}\n${attrLines}\n${product.description || ''}`);
+  },
+
+  showOutOfStockMessage(name) {
+    Helpers.showToast(`"${name}" — ${I18n.t('outOfStock')}`, 'warning');
   },
 
   addToCart(id) {
     this._loadProducts();
     const product = this.products.find(p => p.id === id);
-    if (!product || product.quantity === 0) return;
+    if (!product || product.quantity === 0) {
+      this.showOutOfStockMessage(product?.name || '');
+      return;
+    }
 
     const qty = Helpers.prompt(I18n.t('enterQuantity'), '1');
     if (!qty) return;
@@ -473,12 +532,10 @@ const Inventory = {
       return;
     }
 
-    // Reduce stock immediately
+    const oldStatus = this.getProductStatus(product);
     product.quantity -= quantity;
+    const newStatus = this.getProductStatus(product);
     this._saveProducts();
-
-    // Auto-delete if stock hits zero
-    const wasDeleted = this._autoDeleteOutOfStock(product);
 
     this._loadProducts();
     this.render();
@@ -496,37 +553,18 @@ const Inventory = {
         type: product.type,
         price: product.price,
         cost: product.cost,
-        quantity: quantity
+        quantity: quantity,
+        storageLocation: product.storageLocation || ''
       });
     }
 
     Storage.set('cart', cart);
 
-    if (wasDeleted) {
-      Helpers.showToast(`${product.name} sold out and removed from inventory`, 'warning');
+    if (newStatus === 'out_of_stock' && oldStatus !== 'out_of_stock') {
+      Helpers.showToast(`${product.name} is now out of stock`, 'warning');
     } else {
       Helpers.showToast(`${product.name} added to cart`, 'success');
     }
-  },
-
-  _autoDeleteOutOfStock(product) {
-    if (product.quantity !== 0) return false;
-
-    this._loadProducts();
-    const idx = this.products.findIndex(p => p.id === product.id);
-    if (idx === -1) return false;
-
-    const trash = Storage.get('trash') || [];
-    const item = this.products[idx];
-    item.deletedAt = new Date().toISOString();
-    item.deletedBy = Auth.getSession()?.username || 'unknown';
-    item.autoDeleted = true;
-    trash.push(item);
-    Storage.set('trash', trash);
-
-    this.products.splice(idx, 1);
-    this._saveProducts();
-    return true;
   },
 
   exportData() {
